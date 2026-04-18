@@ -1,32 +1,40 @@
 #! /usr/bin/env python3
 
+from flask import Flask, render_template
+from flask import jsonify, request
 import asyncio
-import aiohttp
+import os
+# import aiohttps
+from services.weather_service import get_multiple_weather
+app = Flask(__name__)
 
-API_KEY = "9572426d283b012826622f6a5749f8b9"
-BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+@app.route("/")
+def home():
+    return render_template("index.html") 
 
-async def get_weather(city_name):
-    """Featch weather for a city asyncronomously"""
-    async with aiohttp.ClientSession() as session:
-        params = {'q': city_name, 'appid': API_KEY, 'units': 'metric'}
-        async with session.get(BASE_URL, params=params) as response:
-            if response.status == 200:
-                data = await response.json()
-                main = data['main']
-                weather = data['weather'][0]
-                print(f"City: {data['name']}")
-                print(f"Temparature: {main['temp']}°C)")
-                print(f"Description: {weather['description']}")
-            else:
-                error_text = await response.text()
-                print(f"[{response.status}] Error for {city_name}: {error_text}")
+@app.route("/get-city-weather")
+def get_city_weather():
+    city_input = request.args.get("city")
+    if city_input:
+        cities = [c.strip() for c in city_input.split(",")]
+        weather_data = asyncio.run(get_multiple_weather(cities))
+        city_count = len(weather_data)
 
-async def main():
+        if request.args.get("format") == "json":
+            return jsonify({
+                "city_count": city_count,
+                "data": weather_data
+                })
+        return render_template(
+            "fetch-weather.html",
+            weather_data=weather_data,
+            city_count=city_count
+            )
     
-    cities = ["London", "Chennai", "Moscow", "New York"]
-    tasks = [get_weather(city) for city in cities]
-    await asyncio.gather(*tasks)
+    return render_template("get-city-weather.html")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    app.run(host="0.0.0.0",
+            port=int(os.environ.get("PORT",5000)),
+                     debug=True
+            )

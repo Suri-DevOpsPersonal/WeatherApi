@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Today</title>
+</head>
+<body>
+    <h1>What's Your City Weather today?</h1>
+    <form action="/get-city-weather" method="GET">
+        <label for="city">Enter cities (comma-separated): </label>
+        <input type="text" name="city" placeholder="Chennai, London, New York" required>
+        <button type="submit">Get Weather</button>
+    </form>
+</body>
+</html>
