@@ -4,7 +4,6 @@ from flask import Flask, render_template
 from flask import jsonify, request
 import asyncio
 import os
-# import aiohttps
 from services.weather_service import get_multiple_weather
 app = Flask(__name__)
 
@@ -14,20 +13,41 @@ def home():
 
 @app.route("/get-city-weather")
 def get_city_weather():
+    json_data = []
     city_input = request.args.get("city")
     if city_input:
         cities = [c.strip() for c in city_input.split(",")]
         weather_data = asyncio.run(get_multiple_weather(cities))
         city_count = len(weather_data)
+        successful_cities = []        
+        failed_cities = []
+        for city, result in zip(cities, weather_data):
+            if isinstance(result, Exception):
+                failed_cities.append({
+                    "city": city,
+                    "error": str(result)
+                    })
+            else:
+                successful_cities.append(result)
 
         if request.args.get("format") == "json":
+            for city in successful_cities:
+                json_data.append({
+                    **city,
+                    "current_dt": city["current_dt"].isoformat()
+                    })
+            status_code = 200 if not failed_cities else 207
             return jsonify({
-                "city_count": city_count,
-                "data": weather_data
-                })
+                "city_count": len(json_data),
+                "scuccess_count": len(json_data),
+                "error_count": len(failed_cities),
+                "data": successful_cities,
+                "errors": failed_cities
+                }), status_code
         return render_template(
             "fetch-weather.html",
-            weather_data=weather_data,
+            successful_cities=successful_cities,
+            failed_cities=failed_cities,
             city_count=city_count
             )
     
