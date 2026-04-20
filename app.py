@@ -5,6 +5,10 @@ from flask import jsonify, request
 import asyncio
 import os
 from services.weather_service import get_multiple_weather
+from utils.logger import setup_logger
+
+logger = setup_logger()
+logger.info("Application started")
 app = Flask(__name__)
 
 @app.route("/")
@@ -15,6 +19,7 @@ def home():
 def get_city_weather():
     json_data = []
     city_input = request.args.get("city")
+    logger.info(f"Received request for city: {city_input}")
     if city_input:
         cities = [c.strip() for c in city_input.split(",")]
         weather_data = asyncio.run(get_multiple_weather(cities))
@@ -23,11 +28,13 @@ def get_city_weather():
         failed_cities = []
         for city, result in zip(cities, weather_data):
             if isinstance(result, Exception):
+                logger.error(f"Error fetching weather for {city}: {str(result)}")
                 failed_cities.append({
                     "city": city,
                     "error": str(result)
                     })
             else:
+                logger.info(f"Successfully fetched weather for {city}")
                 successful_cities.append(result)
 
         if request.args.get("format") == "json":
