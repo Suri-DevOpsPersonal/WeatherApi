@@ -1,12 +1,19 @@
 #! /usr/bin/env python3
 
+import os
 import asyncio
 import aiohttp
 from datetime import datetime, timezone, timedelta
 from exceptions.exceptions import CityNotFoundError, WeatherServiceError, ExternalAPIError
+from config import Config
 
-API_KEY = "9572426d283b012826622f6a5749f8b9"
-BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+# API_KEY = "9572426d283b012826622f6a5749f8b9"
+# BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+
+API_KEY = Config.OPENWEATHER_API_KEY
+BASE_URL = Config.BASE_URL
+TIMEOUT = Config.TIMEOUT
+
 
 
 async def get_weather(city_name):
@@ -14,7 +21,7 @@ async def get_weather(city_name):
     async with aiohttp.ClientSession() as session:
         params = {"q": city_name, "appid": API_KEY, "units": "metric"}
         try:
-            async with session.get(BASE_URL, params=params) as response:
+            async with session.get(BASE_URL, params=params, timeout=TIMEOUT) as response:
                 if response.status == 404:
                     raise CityNotFoundError(f"City not found: {city_name}")
                 if response.status != 200:

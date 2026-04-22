@@ -1,3 +1,12 @@
+# ENVs
+.env
+.env.*
+*.env
+
+# Git
+.git
+.gitignore
+
 #Python
 __pycache__/
 *.pyc
@@ -8,15 +17,5 @@ __pycache__/
 venv/
 .venv/
 
-
-# ENVs
-.env
-.env.*
-*.env
-
-
-#OS
-.SD_STORE
-
-#Docker & Python
+# Local Files
 *.log
